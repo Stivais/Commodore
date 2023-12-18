@@ -24,9 +24,9 @@ class CommandNode<S>(name: String) {
         }
     }
 
-    fun runs(block: Function<*>) {
+    fun runs(vararg names: String, block: Function<*>) {
         val executable = Executable<S>(block)
-        builder.then(executable.setup())
+        builder.then(executable.setup(names))
     }
 
     fun setup() {

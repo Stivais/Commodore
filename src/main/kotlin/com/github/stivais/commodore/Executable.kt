@@ -12,13 +12,13 @@ class Executable<S>(function: Function<*>) {
 
     private val parsers = mutableListOf<Parser<S, *>>()
 
-    fun setup(): RequiredBuilder<S> {
+    fun setup(names: Array<out String>): RequiredBuilder<S> {
         val params = function.parameters
         var first: RequiredBuilder<S>? = null
 
         for (i in params.size - 1 downTo 0) {
             val parser =
-                Parser.getParser<S>(params[i].type, params[i].type.simpleName) ?: throw ParserCreationException()
+                Parser.getParser<S>(params[i].type, names[i]) ?: throw ParserCreationException()
             parsers.add(0, parser)
 
             if (i == params.size - 1) {
