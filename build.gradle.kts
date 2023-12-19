@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.github.stivais"
-version = "1.0.1"
+version = project.findProperty("version") as String
 
 repositories {
     mavenCentral()
@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
     api("com.mojang:brigadier:1.0.18")
 }
 

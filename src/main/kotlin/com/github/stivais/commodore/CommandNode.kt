@@ -17,16 +17,18 @@ class CommandNode<S>(name: String) {
         return cmd
     }
 
-    fun runs(block: () -> Unit) {
+    fun runs(block: () -> Unit): CommandNode<S> {
         builder.executes {
             block()
             0
         }
+        return this
     }
 
-    fun runs(vararg names: String, block: Function<*>) {
+    fun runs(block: Function<Unit>): CommandNode<S> {
         val executable = Executable<S>(block)
-        builder.then(executable.setup(names))
+        builder.then(executable.setup())
+        return this
     }
 
     fun setup() {

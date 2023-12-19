@@ -4,7 +4,8 @@ import com.github.stivais.commodore.parsers.Parser
 import com.github.stivais.commodore.utils.RequiredBuilder
 import com.mojang.brigadier.context.CommandContext
 import java.lang.invoke.MethodHandles
-import java.lang.reflect.Parameter
+import kotlin.reflect.jvm.ExperimentalReflectionOnLambdas
+import kotlin.reflect.jvm.reflect
 
 class Executable<S>(function: Function<*>) {
 
@@ -12,13 +13,13 @@ class Executable<S>(function: Function<*>) {
 
     private val parsers = mutableListOf<Parser<S, *>>()
 
-    fun setup(names: Array<out String>): RequiredBuilder<S> {
+    fun setup(): RequiredBuilder<S> {
         val params = function.parameters
         var first: RequiredBuilder<S>? = null
 
         for (i in params.size - 1 downTo 0) {
             val parser =
-                Parser.getParser<S>(params[i].type, names[i]) ?: throw ParserCreationException()
+                Parser.getParser<S>(params[i].clazz, params[i].name) ?: throw ParserCreationException()
             parsers.add(0, parser)
 
             if (i == params.size - 1) {
@@ -52,7 +53,7 @@ class ParserCreationException : Exception("Commodore: Failed to create parsers",
  */
 class ReflectedFunction(function: Function<*>) {
     val function: java.util.function.Function<Array<*>, *>
-    val parameters: Array<Parameter>
+    val parameters: List<Parameter>
 
     init {
         try {
@@ -61,11 +62,16 @@ class ReflectedFunction(function: Function<*>) {
 
             val methodHandle = MethodHandles.lookup().unreflect(method).bindTo(function)
             this.function = java.util.function.Function { return@Function methodHandle.invokeWithArguments(*it) }
-            this.parameters = method.parameters
+
+            @OptIn(ExperimentalReflectionOnLambdas::class)
+            val functionParams = function.reflect() ?: throw FunctionCreationException()
+            this.parameters = functionParams.parameters.map { Parameter(it.name.toString(), it.type.javaClass) }
         } catch (e: Exception) {
             throw FunctionCreationException(cause = e)
         }
     }
 }
 
-class FunctionCreationException(cause: Throwable?) : Exception("Error creating Commodore Function.", cause)
+data class Parameter(val name: String, val clazz: Class<*>)
+
+class FunctionCreationException(cause: Throwable? = null) : Exception("Error creating Commodore Function.", cause)
