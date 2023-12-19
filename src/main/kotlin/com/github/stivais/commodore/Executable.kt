@@ -4,6 +4,7 @@ import com.github.stivais.commodore.parsers.Parser
 import com.github.stivais.commodore.utils.RequiredBuilder
 import com.mojang.brigadier.context.CommandContext
 import java.lang.invoke.MethodHandles
+import kotlin.reflect.KClass
 import kotlin.reflect.jvm.ExperimentalReflectionOnLambdas
 import kotlin.reflect.jvm.reflect
 
@@ -64,8 +65,8 @@ class ReflectedFunction(function: Function<*>) {
             this.function = java.util.function.Function { return@Function methodHandle.invokeWithArguments(*it) }
 
             @OptIn(ExperimentalReflectionOnLambdas::class)
-            val functionParams = function.reflect() ?: throw FunctionCreationException()
-            this.parameters = functionParams.parameters.map { Parameter(it.name.toString(), it.type.javaClass) }
+            val kFun = function.reflect() ?: throw FunctionCreationException()
+            parameters = kFun.parameters.map { Parameter(it.name.toString(), (it.type.classifier as KClass<*>).java) }
         } catch (e: Exception) {
             throw FunctionCreationException(cause = e)
         }
