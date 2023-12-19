@@ -22,7 +22,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "com.github.stivais"
             artifactId = "Commodore"
-            version = "1.0.0"
+            version = project.findProperty("version") as String
             from(getComponents().getByName("java"))
         }
     }
