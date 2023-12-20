@@ -29,9 +29,10 @@ class Executable<S>(function: Function<*>) {
                     0
                 }
             } else {
-                if (i == 0) builder = parser.builder
                 parser.builder.then(parsers[1].builder)
             }
+
+            if (i == 0) builder = parser.builder
         }
         return builder ?: throw ParserCreationException()
     }
