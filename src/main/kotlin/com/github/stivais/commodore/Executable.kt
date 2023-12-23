@@ -1,7 +1,7 @@
 package com.github.stivais.commodore
 
-import com.github.stivais.commodore.parsers.AbstractParser
-import com.github.stivais.commodore.parsers.ParserFactory
+import com.github.stivais.commodore.parsers.ParserArgumentType
+import com.github.stivais.commodore.parsers.Parser
 import com.github.stivais.commodore.utils.RequiredBuilder
 import com.mojang.brigadier.context.CommandContext
 
@@ -9,13 +9,13 @@ class Executable<S>(function: Function<*>) {
 
     private val function = FunctionInvoker(function)
 
-    private val parsers = mutableListOf<AbstractParser<S, *>>()
+    private val parsers = mutableListOf<ParserArgumentType<S, *>>()
 
     fun setup(): RequiredBuilder<S> {
         val params = function.parameters
 
         for (i in params.size - 1 downTo 0) {
-            val parser = ParserFactory.get<S>(params[i].name, params[i].clazz)
+            val parser = Parser.get<S>(params[i].name, params[i].clazz)
                 ?: throw ParserCreationException("Parser not found")
             parsers.add(0, parser)
 

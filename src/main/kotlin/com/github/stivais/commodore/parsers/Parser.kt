@@ -11,20 +11,20 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import java.util.*
 
-abstract class ParserFactory<T>(val clazz: Class<T>) {
+abstract class Parser<T>(val clazz: Class<T>) {
 
-    fun <S> create(name: String) : AbstractParser<S, T> {
-        return object : AbstractParser<S, T>(name, clazz) {
+    fun <S> create(name: String) : ParserArgumentType<S, T> {
+        return object : ParserArgumentType<S, T>(name, clazz) {
             override fun parse(reader: StringReader): T {
-                return this@ParserFactory.parse(reader)
+                return this@Parser.parse(reader)
             }
 
             override fun getExamples(): Collection<String> {
-                return this@ParserFactory.getExamples()
+                return this@Parser.getExamples()
             }
 
             override fun <S> listSuggestions(ctx: CommandContext<S>, builder: SuggestionsBuilder): Suggestions {
-                return this@ParserFactory.listSuggestions(ctx, builder)
+                return this@Parser.listSuggestions(ctx, builder)
             }
         }
     }
@@ -39,27 +39,33 @@ abstract class ParserFactory<T>(val clazz: Class<T>) {
         return BrigadierSuggestions.empty()
     }
 
+    final override fun toString(): String = "Parser(class=${clazz.simpleName})"
+
     companion object {
-        val parserMap = mutableMapOf<Class<*>, ParserFactory<*>>(
-            Int::class.java to IntParserFactory,
-            Long::class.java to LongParserFactory,
-            Float::class.java to FloatParserFactory,
-            Double::class.java to DoubleParserFactory,
-            String::class.java to StringParserFactory,
-            GreedyString::class.java to GreedyStringParserFactory,
-            Boolean::class.java to BooleanParserFactory
+        private val parserMap = mutableMapOf<Class<*>, Parser<*>>(
+            Int::class.java to IntParser,
+            Long::class.java to LongParser,
+            Float::class.java to FloatParser,
+            Double::class.java to DoubleParser,
+            String::class.java to StringParser,
+            GreedyString::class.java to GreedyStringParser,
+            Boolean::class.java to BooleanParser
         )
 
-        fun <S> get(name: String, clazz: Class<*>): AbstractParser<S, *>? {
+        fun <S> get(name: String, clazz: Class<*>): ParserArgumentType<S, *>? {
             return parserMap[clazz]?.create(name)
+        }
+
+        fun <T> register(clazz: Class<T>, parser: Parser<T>) {
+            parserMap[clazz] = parser
         }
 
         inline fun <reified T> createParser(
             crossinline parse: (reader: StringReader) -> T,
             crossinline examples: () -> Collection<String> = { Collections.emptyList() },
             crossinline suggestions: SuggestionLambda = { _, _ -> BrigadierSuggestions.empty() }
-        ): ParserFactory<T> {
-            val parser = object : ParserFactory<T>(T::class.java) {
+        ): Parser<T> {
+            val parser = object : Parser<T>(T::class.java) {
                 override fun parse(reader: StringReader): T {
                     return parse(reader)
                 }
@@ -72,7 +78,7 @@ abstract class ParserFactory<T>(val clazz: Class<T>) {
                     return suggestions(ctx, builder)
                 }
             }
-            parserMap[T::class.java] = parser
+            register(T::class.java, parser)
             return parser
         }
     }
