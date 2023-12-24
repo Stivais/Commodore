@@ -5,7 +5,9 @@ import com.mojang.brigadier.StringReader
 
 object GreedyStringParser : Parser<GreedyString>(GreedyString::class.java) {
     override fun parse(reader: StringReader): GreedyString {
-        return GreedyString(reader.remaining)
+        val string = reader.remaining
+        reader.cursor = reader.totalLength
+        return GreedyString(string)
     }
 }
 
