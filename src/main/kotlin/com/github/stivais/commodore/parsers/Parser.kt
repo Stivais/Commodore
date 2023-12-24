@@ -60,6 +60,10 @@ abstract class Parser<T>(val clazz: Class<T>) {
             parserMap[clazz] = parser
         }
 
+        inline fun <reified T> register(parser: Parser<T>) {
+            register(T::class.java, parser)
+        }
+
         inline fun <reified T> createParser(
             crossinline parse: (reader: StringReader) -> T,
             crossinline examples: () -> Collection<String> = { Collections.emptyList() },

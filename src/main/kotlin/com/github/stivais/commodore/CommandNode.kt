@@ -31,6 +31,13 @@ class CommandNode<S>(name: String) {
         return this
     }
 
+    fun requires(block: () -> Boolean): CommandNode<S> {
+        builder.requires {
+            block()
+        }
+        return this
+    }
+
     fun setup() {
         for (i in children) {
             i.setup()
