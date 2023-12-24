@@ -4,7 +4,7 @@ package com.github.stivais.commodore
 
 import com.github.stivais.commodore.utils.LiteralBuilder
 
-class CommandNode<S>(name: String) {
+class CommandNode<S>(val name: String) {
 
     val builder: LiteralBuilder<S> = LiteralBuilder.literal(name)
 
@@ -44,4 +44,6 @@ class CommandNode<S>(name: String) {
             builder.then(i.builder)
         }
     }
+
+    override fun toString(): String = "CommandNode(name=$name)"
 }

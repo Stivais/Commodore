@@ -9,4 +9,6 @@ object GreedyStringParser : Parser<GreedyString>(GreedyString::class.java) {
     }
 }
 
-data class GreedyString(val name: String)
+data class GreedyString(val string: String) {
+    override fun toString(): String = string
+}
