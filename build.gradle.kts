@@ -1,4 +1,5 @@
 plugins {
+    id("gg.essential.loom") version "0.10.0.+"
     kotlin("jvm") version "1.9.20"
     `maven-publish`
 }
@@ -12,9 +13,12 @@ repositories {
 }
 
 dependencies {
+    minecraft("com.mojang:minecraft:1.8.9")
+    mappings("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
+    forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
+
     implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
-    api("com.mojang:brigadier:1.0.18")
+    implementation("com.mojang:brigadier:1.0.18")
 }
 
 publishing {

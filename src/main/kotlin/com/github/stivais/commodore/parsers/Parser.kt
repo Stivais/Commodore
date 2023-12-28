@@ -11,6 +11,7 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import java.util.*
 
+// kinda scuffed but it works ig
 abstract class Parser<T>(val clazz: Class<T>) {
 
     fun <S> create(name: String) : ParserArgumentType<S, T> {
