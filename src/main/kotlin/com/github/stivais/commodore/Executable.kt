@@ -1,63 +1,90 @@
+@file:Suppress("UNUSED")
+
 package com.github.stivais.commodore
 
+import com.github.stivais.commodore.functions.FunctionInvoker
 import com.github.stivais.commodore.parsers.ParserArgumentType
-import com.github.stivais.commodore.parsers.Parser
-import com.github.stivais.commodore.utils.RequiredBuilder
-import com.mojang.brigadier.Command.SINGLE_SUCCESS
+import com.github.stivais.commodore.parsers.ParserBuilder
+import com.mojang.brigadier.Command
 import com.mojang.brigadier.context.CommandContext
 
-class Executable<S>(function: Function<*>) {
+/**
+ * ## Executable
+ *
+ * The main class that handles custom functions for commands.
+ *
+ *
+ */
+class Executable(private val node: Node, private val function: FunctionInvoker) {
 
-    private val function = FunctionInvoker(function)
+    /**
+     * Parsers tied to this [function]
+     */
+    private val parsers: MutableList<ParserArgumentType<*>> = mutableListOf()
 
-    private val parsers = mutableListOf<ParserArgumentType<S, *>>()
+    /**
+     * A [brigadier command][Command], that invokes the [function].
+     */
+    private val command: Command<Any?> = Command { ctx ->
+        function.invoke(getValues(ctx))
+        Command.SINGLE_SUCCESS
+    }
 
-    fun setup(): RequiredBuilder<S> {
-        val params = function.parameters
-
-        var previous: ParserArgumentType<S, *>? = null
-        for (param in params) {
-            val parser = Parser.create<S>(param.name, param.clazz) ?: throw ParserCreationException("Parser not found")
-            parser.optional = param.isNullable
-            parser.previous = previous
-            previous = parser
+    init {
+        for (param in function.parameters) {
+            val parser = ParserBuilder.create(param.name, param.clazz)
+            parser.isOptional = param.isNullable
+            parsers.lastOrNull()?.let { parser.previous = it }
             parsers.add(parser)
         }
-
-        parsers.last().runs {
-            function.invoke(getValues(it))
-            SINGLE_SUCCESS
-        }
-
-        for (parser in parsers.reversed()) {
-            parser.previous?.builder?.then(parser.builder) ?: return parser.builder
-        }
-
-/*        // reverses params
-        // if first in list, executes
-        for (i in params.size - 1 downTo 0) {
-            val parser = Parser.get<S>(params[i].name, params[i].clazz) ?: throw ParserCreationException("Parser not found")
-            parsers.add(0, parser)
-
-            if (i == params.size - 1) {
-                parser.builder.executes {
-                    function.invoke(getValues(it))
-                    0
-                }
-            } else {
-                parser.builder.then(parsers[1].builder)
-            }
-
-            if (i == 0) return parser.builder
-        }*/
-        throw ParserCreationException("Couldn't")
     }
 
-    private fun getValues(ctx: CommandContext<S>): MutableList<Any?> { // gets actual values to invoke into function
+    /**
+     * Adds suggestions for a defined parameter.
+     *
+     * @param param the parameter to add the suggestions
+     * @param suggestions the suggestions to add to the parameter
+     */
+    fun suggests(param: String, suggestions: Collection<String>) {
+        val parser = parsers.find { it.id == param } ?: throw Exception("Parameter not found.")
+        parser.builder.suggests { _, builder ->
+            for (str in suggestions) {
+                if (str.startsWith(builder.remaining)) builder.suggest(str)
+            }
+            builder.buildFuture()
+        }
+    }
+
+    /**
+     * Adds suggestions for a defined parameter.
+     *
+     * @param pairs An array of pairs of strings and suggestions.
+     */
+    fun suggests(vararg pairs: Pair<String, Collection<String>>) {
+        for (i in pairs) {
+            suggests(i.first, i.second)
+        }
+    }
+
+    /**
+     * Adds suggestions for a defined parameter.
+     *
+     * @param param the parameter to add the suggestions
+     * @param block the suggestions to add to the parameter (as a getter)
+     */
+    fun suggests(param: String, block: () -> Collection<String>) = suggests(param, block())
+
+
+    private fun getValues(ctx: CommandContext<Any?>): MutableList<Any?> {
         return MutableList(parsers.size) { index -> parsers[index].getValue(ctx) }
     }
+
+    fun build() {
+        if (!parsers.last().runs(command)) {
+            node.builder.executes(command)
+        }
+        for (parser in parsers.reversed()) {
+            parser.previous?.builder?.then(parser.builder) ?: node.builder.then(parser.builder)
+        }
+    }
 }
-
-class ParserException : Exception("[Commodore] Failed to parse", null)
-
-class ParserCreationException(msg: String) : Exception("[Commodore] Failed to create parsers: $msg", null)
