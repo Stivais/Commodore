@@ -22,3 +22,9 @@ fun <S> CommandDispatcher<S>.register(command: Commodore<S>) {
     cmd.setup()
     this.register(cmd.builder)
 }
+
+fun commodore(name: String, block: CommandNode<Any>.() -> Unit): Commodore<Any> {
+    return object : Commodore<Any> {
+        override val command: CommandNode<Any> = literal(name, block)
+    }
+}

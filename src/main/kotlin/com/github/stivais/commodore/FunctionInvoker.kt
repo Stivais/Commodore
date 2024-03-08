@@ -19,17 +19,20 @@ class FunctionInvoker(function: Function<*>) {
 
             @OptIn(ExperimentalReflectionOnLambdas::class)
             val kFun = function.reflect() ?: throw InvokerCreationException()
-            parameters = kFun.parameters.map { Parameter(it.name.toString(), (it.type.classifier as KClass<*>).java) }
+            parameters = kFun.parameters.map {
+                println((it.type.classifier as KClass<*>).java)
+                Parameter(it.name.toString(), (it.type.classifier as KClass<*>).java, it.type.isMarkedNullable)
+            }
         } catch (e: Exception) {
             throw InvokerCreationException(cause = e)
         }
     }
 
-    fun invoke(list: MutableList<Any>) {
+    fun invoke(list: MutableList<Any?>) {
         mHandle.invokeWithArguments(list)
     }
 }
 
-data class Parameter(val name: String, val clazz: Class<*>)
+data class Parameter(val name: String, val clazz: Class<*>, val isNullable: Boolean)
 
 class InvokerCreationException(cause: Throwable? = null) : Exception("Error creating Commodore Function.", cause)

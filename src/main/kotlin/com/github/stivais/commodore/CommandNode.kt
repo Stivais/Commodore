@@ -4,11 +4,19 @@ package com.github.stivais.commodore
 
 import com.github.stivais.commodore.utils.LiteralBuilder
 
-class CommandNode<S>(val name: String) {
+/**
+ * # CommandNode
+ *
+ * Acts a literal, where you can set it to run a custom function
+ *
+ */
+class CommandNode<S>(private val name: String) {
 
     val builder: LiteralBuilder<S> = LiteralBuilder.literal(name)
 
-    private val children: MutableList<CommandNode<S>> = mutableListOf()
+    private var children: MutableList<CommandNode<S>> = mutableListOf()
+
+    private var executables: MutableList<Executable<S>> = mutableListOf()
 
     fun literal(name: String, block: CommandNode<S>.() -> Unit = {}): CommandNode<S> {
         val cmd = CommandNode<S>(name)
@@ -25,6 +33,9 @@ class CommandNode<S>(val name: String) {
         return this
     }
 
+    /**
+     * Creates
+     */
     fun runs(block: Function<Unit>): CommandNode<S> {
         val executable = Executable<S>(block)
         builder.then(executable.setup())

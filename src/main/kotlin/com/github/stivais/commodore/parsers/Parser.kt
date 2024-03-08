@@ -43,16 +43,23 @@ abstract class Parser<T>(val clazz: Class<T>) {
 
     companion object {
         private val parserMap = mutableMapOf<Class<*>, Parser<*>>(
+            // reason for both java.lang and the primitive itself, is because when getting the class of a nullable primitive
+            // it returns java.lang, but that can't cast to a non-nullable primitive
+            java.lang.Integer::class.java to IntParser,
             Int::class.java to IntParser,
+            java.lang.Long::class.java to LongParser,
             Long::class.java to LongParser,
+            java.lang.Float::class.java to FloatParser,
             Float::class.java to FloatParser,
+            java.lang.Double::class.java to DoubleParser,
             Double::class.java to DoubleParser,
+            java.lang.Boolean::class.java to BooleanParser,
+            Boolean::class.java to BooleanParser,
             String::class.java to StringParser,
             GreedyString::class.java to GreedyStringParser,
-            Boolean::class.java to BooleanParser
         )
 
-        fun <S> get(name: String, clazz: Class<*>): ParserArgumentType<S, *>? {
+        fun <S> create(name: String, clazz: Class<*>): ParserArgumentType<S, *>? {
             return parserMap[clazz]?.create(name)
         }
 
