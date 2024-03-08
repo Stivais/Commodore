@@ -48,9 +48,10 @@ class Node(name: String) {
     /**
      * Creates a new node that branches from the current one.
      */
-    fun literal(name: String, block: Node.() -> Unit = {}) {
+    fun literal(name: String, block: Node.() -> Unit = {}): Node {
         if (children == null) children = mutableListOf()
         children?.add(Node(name).also { it.block() })
+        return this
     }
 
     /**
