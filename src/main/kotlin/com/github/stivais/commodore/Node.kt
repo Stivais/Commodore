@@ -50,8 +50,10 @@ class Node(name: String) {
      */
     fun literal(name: String, block: Node.() -> Unit = {}): Node {
         if (children == null) children = mutableListOf()
-        children?.add(Node(name).also { it.block() })
-        return this
+        return Node(name).also {
+            it.block()
+            children?.add(it)
+        }
     }
 
     /**
