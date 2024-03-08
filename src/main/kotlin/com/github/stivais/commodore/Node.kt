@@ -21,35 +21,36 @@ class Node(name: String) {
     /**
      * Nodes that branch of the current one
      */
-    private val children: MutableList<Node> by lazy { mutableListOf() }
+    private var children: MutableList<Node>? = null
 
     /**
      * Executables under this node
      */
-    private val executables: MutableList<Executable> by lazy { mutableListOf() }
+    private var executables: MutableList<Executable>? = null
 
     /**
      * Sets up the node and its children
      */
     fun build() {
-        for (executable in executables) {
-            executable.build()
+        executables?.let {
+            for (executable in it) {
+                executable.build()
+            }
         }
-        for (node in children) {
-            node.build()
-            builder.then(node.builder)
+        children?.let {
+            for (node in it) {
+                node.build()
+                builder.then(node.builder)
+            }
         }
     }
 
     /**
      * Creates a new node that branches from the current one.
      */
-    fun literal(name: String, block: Node.() -> Unit) {
-        children.add(
-            Node(name).apply {
-                block()
-            }
-        )
+    fun literal(name: String, block: Node.() -> Unit = {}) {
+        if (children == null) children = mutableListOf()
+        children?.add(Node(name).also { it.block() })
     }
 
     /**
@@ -78,7 +79,8 @@ class Node(name: String) {
      *
      */
     fun runs(block: Function<Unit>): Executable {
-        return Executable(this, FunctionInvoker(block)).also { executables.add(it) }
+        if (executables == null) executables = mutableListOf()
+        return Executable(this, FunctionInvoker(block)).also { executables?.add(it) }
     }
 
     /**
