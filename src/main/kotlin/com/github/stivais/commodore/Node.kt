@@ -14,6 +14,11 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 class Node(val name: String) {
 
     /**
+     * Parent of this node.
+     */
+    var parent: Node? = null
+
+    /**
      * Literal builder
      */
     val builder: LiteralArgumentBuilder<Any?> = LiteralArgumentBuilder.literal<Any?>(name)
@@ -52,6 +57,7 @@ class Node(val name: String) {
         if (children == null) children = mutableListOf()
         return Node(name).also {
             it.block()
+            it.parent = this
             children?.add(it)
         }
     }

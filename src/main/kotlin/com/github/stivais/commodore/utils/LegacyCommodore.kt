@@ -19,10 +19,11 @@ object LegacyCommodore {
      */
     private val dispatcher: CommandDispatcher<Any?> by lazy { CommandDispatcher() }
 
-    /**
-     * @see ExceptionHandler
-     */
+    /** @see ExceptionHandler */
     var exceptionHandler: ExceptionHandler? = null
+
+    /** Whether executing command should print the parsed nodes, if command failed */
+    var debug = true
 
     /** Registers a commodore class to the dispatcher */
     fun register(commodore: Commodore) {
@@ -43,6 +44,9 @@ object LegacyCommodore {
             dispatcher.execute(parse)
         } catch (e: CommandSyntaxException) {
             if (exceptionHandler != null) {
+                if (debug) {
+                    println(parse.context.nodes.map { it.node.name })
+                }
                 val cause = findCorrespondingNode(node, parse) ?: return
                 exceptionHandler!!.handle(cause)
             }

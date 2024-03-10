@@ -36,6 +36,7 @@ open class Commodore(private val node: Node) {
         if (node.children == null) node.children = mutableListOf()
         return Node(name).also {
             it.block()
+            it.parent = node
             node.children?.add(it)
         }
     }

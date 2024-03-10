@@ -13,7 +13,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode
 fun findCorrespondingNode(node: Node, name: String): Node? {
     if (node.children != null) {
         for (child in node.children!!) {
-            return findCorrespondingNode(child, name)
+            findCorrespondingNode(child, name)?.let { return it }
         }
     }
     return if (node.name == name) node else null
@@ -27,4 +27,17 @@ fun findCorrespondingNode(node: Node, name: String): Node? {
 fun findCorrespondingNode(node: Node, results: ParseResults<Any?>): Node? {
     val last = results.context.nodes.last { it.node is LiteralCommandNode }.node.name
     return findCorrespondingNode(node, last)
+}
+
+/**
+ * Returns a list of strings for the arguments required to activate a node.
+ */
+fun getArgumentsRequired(node: Node): List<String> {
+    val mutableList = mutableListOf(node.name)
+    var current = node
+    while (current.parent != null) {
+        current = current.parent!!
+        mutableList.add(0, current.name)
+    }
+    return mutableList
 }
