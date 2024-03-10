@@ -10,7 +10,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
 /**
  * Useful for implementing Commodore in older versions of minecraft that don't directly support Brigadier
  *
- * Only use this if you're on a version that doesn't have brigadier manually implemented (1.13>)/
+ * Only use this if you're on a version that doesn't have brigadier manually implemented (1.13>)
  */
 object LegacyCommodore {
 
@@ -20,9 +20,9 @@ object LegacyCommodore {
     private val dispatcher: CommandDispatcher<Any?> by lazy { CommandDispatcher() }
 
     /**
-     *
+     * @see ExceptionHandler
      */
-    private var exceptionHandler: ExceptionHandler? = null
+    var exceptionHandler: ExceptionHandler? = null
 
     /** Registers a commodore class to the dispatcher */
     fun register(commodore: Commodore) {
@@ -42,8 +42,10 @@ object LegacyCommodore {
         try {
             dispatcher.execute(parse)
         } catch (e: CommandSyntaxException) {
-            val cause = findCorrespondingNode(node, parse) ?: return
-            exceptionHandler?.handle(cause)
+            if (exceptionHandler != null) {
+                val cause = findCorrespondingNode(node, parse) ?: return
+                exceptionHandler!!.handle(cause)
+            }
         }
     }
 
