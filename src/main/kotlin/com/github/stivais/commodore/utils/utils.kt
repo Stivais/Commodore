@@ -41,3 +41,10 @@ fun getArgumentsRequired(node: Node): List<String> {
     }
     return mutableList
 }
+
+/**
+ * Returns if a node is a root node
+ */
+fun Node.isRoot(): Boolean {
+    return parent == null
+}

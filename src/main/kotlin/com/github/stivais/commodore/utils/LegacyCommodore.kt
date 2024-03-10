@@ -11,19 +11,19 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
  * Useful for implementing Commodore in older versions of minecraft that don't directly support Brigadier
  *
  * Only use this if you're on a version that doesn't have brigadier manually implemented (1.13>)
+ *
+ * @param exceptionHandler [ExceptionHandler] for this class
+ * @param rootAsCause Whether root node should be given to the [ExceptionHandler] as the cause
  */
-object LegacyCommodore {
+class LegacyCommodore(
+    private var exceptionHandler: ExceptionHandler? = null,
+    private var rootAsCause: Boolean = false
+) {
 
     /**
      * Global dispatcher
      */
     private val dispatcher: CommandDispatcher<Any?> by lazy { CommandDispatcher() }
-
-    /** @see ExceptionHandler */
-    var exceptionHandler: ExceptionHandler? = null
-
-    /** Whether executing command should print the parsed nodes, if command failed */
-    var debug = true
 
     /** Registers a commodore class to the dispatcher */
     fun register(commodore: Commodore) {
@@ -44,10 +44,7 @@ object LegacyCommodore {
             dispatcher.execute(parse)
         } catch (e: CommandSyntaxException) {
             if (exceptionHandler != null) {
-                if (debug) {
-                    println(parse.context.nodes.map { it.node.name })
-                }
-                val cause = findCorrespondingNode(node, parse) ?: return
+                val cause = if (rootAsCause) node else findCorrespondingNode(node, parse) ?: return
                 exceptionHandler!!.handle(cause)
             }
         }
