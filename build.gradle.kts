@@ -12,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
+    api(kotlin("stdlib-jdk8"))
+    api(kotlin("reflect"))
     api("com.mojang:brigadier:1.0.18")
 }
 

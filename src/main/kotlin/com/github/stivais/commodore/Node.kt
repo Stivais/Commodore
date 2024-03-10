@@ -11,7 +11,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
  *
  * A command, starts with the root node and branches of.
  */
-class Node(name: String) {
+class Node(val name: String) {
 
     /**
      * Literal builder
@@ -21,12 +21,12 @@ class Node(name: String) {
     /**
      * Nodes that branch of the current one
      */
-    private var children: MutableList<Node>? = null
+    var children: MutableList<Node>? = null
 
     /**
      * Executables under this node
      */
-    private var executables: MutableList<Executable>? = null
+    var executables: MutableList<Executable>? = null
 
     /**
      * Sets up the node and its children

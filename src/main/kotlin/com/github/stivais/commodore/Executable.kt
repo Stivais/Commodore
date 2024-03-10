@@ -20,7 +20,7 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
     /**
      * Parsers tied to this [function]
      */
-    private val parsers: MutableList<ParserArgumentType<*>> = mutableListOf()
+    val parsers: MutableList<ParserArgumentType<*>> = mutableListOf()
 
     /**
      * A [brigadier command][Command], that invokes the [function].
@@ -74,12 +74,21 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
      */
     fun suggests(param: String, block: () -> Collection<String>) = suggests(param, block())
 
+    /**
+     * Gets a list of the parameters names.
+     *
+     * @return List of strings
+     */
+    fun argumentsToString(): List<String> {
+        return parsers.map { it.id }
+    }
+
 
     private fun getValues(ctx: CommandContext<Any?>): MutableList<Any?> {
         return MutableList(parsers.size) { index -> parsers[index].getValue(ctx) }
     }
 
-    fun build() {
+    internal fun build() {
         if (!parsers.last().runs(command)) {
             node.builder.executes(command)
         }
