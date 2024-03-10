@@ -12,8 +12,6 @@ import com.mojang.brigadier.context.CommandContext
  * ## Executable
  *
  * The main class that handles custom functions for commands.
- *
- *
  */
 class Executable(private val node: Node, private val function: FunctionInvoker) {
 
