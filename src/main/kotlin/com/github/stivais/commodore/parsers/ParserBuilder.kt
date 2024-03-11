@@ -2,11 +2,7 @@ package com.github.stivais.commodore.parsers
 
 import com.github.stivais.commodore.utils.GreedyString
 import com.mojang.brigadier.StringReader
-import com.mojang.brigadier.context.CommandContext
-import com.mojang.brigadier.suggestion.Suggestions
-import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import java.util.*
-import java.util.concurrent.CompletableFuture
 
 /**
  * ParserBuilder is a class that is used to create [Parsers][ParserArgumentType],
@@ -14,30 +10,29 @@ import java.util.concurrent.CompletableFuture
  */
 abstract class ParserBuilder<T>(val clazz: Class<T>) {
     /**
-     * Parses the input
+     * Parses the input.
      */
     abstract fun parse(reader: StringReader): T
 
+    // im not quite sure what it does in modern versions so ill keep this here just in case it has a use
     open fun examples(): Collection<String> = Collections.emptyList()
-
-    open fun suggests(ctx: CommandContext<Any?>, builder: SuggestionsBuilder): CompletableFuture<Suggestions> =
-        Suggestions.empty()
 
 
     /**
-     * Creates the [ParserArgumentType], using the builder's [parse], [examples] and [suggests] functions.
+     * Creates the [ParserArgumentType], using the builder's [parse], [examples] functions.
      *
      * @param id - used to identify the parser (usually being the parameter name)
      */
     fun buildParser(id: String): ParserArgumentType<T> = object : ParserArgumentType<T>(id, clazz) {
-        override fun parse(reader: StringReader): T = this@ParserBuilder.parse(reader)
-        override fun getExamples(): Collection<String> = this@ParserBuilder.examples()
-        override fun <S : Any?> listSuggestions(
-            context: CommandContext<S>,
-            builder: SuggestionsBuilder
-        ): CompletableFuture<Suggestions> {
-            return this@ParserBuilder.suggests(context as CommandContext<Any?>, builder)
+        init {
+            if (suggestions == null && this@ParserBuilder is Suggests) {
+                suggestions = { suggests() }
+            }
         }
+
+        override fun parse(reader: StringReader): T = this@ParserBuilder.parse(reader)
+
+        override fun getExamples(): Collection<String> = this@ParserBuilder.examples()
     }
 
     companion object {

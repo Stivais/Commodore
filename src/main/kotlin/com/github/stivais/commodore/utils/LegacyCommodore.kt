@@ -4,6 +4,7 @@ package com.github.stivais.commodore.utils
 
 import com.github.stivais.commodore.Commodore
 import com.github.stivais.commodore.Node
+import com.github.stivais.commodore.utils.LegacyCommodore.ExceptionHandler
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 
@@ -12,13 +13,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
  *
  * Only use this if you're on a version that doesn't have brigadier manually implemented (1.13>)
  *
+ * NOTE: It is very recommended to create an exceptionHandler
+ * to be able to provide proper errors if command doesn't successfully execute
+ *
  * @param exceptionHandler [ExceptionHandler] for this class
- * @param rootAsCause Whether root node should be given to the [ExceptionHandler] as the cause
  */
-class LegacyCommodore(
-    private var exceptionHandler: ExceptionHandler? = null,
-    private var rootAsCause: Boolean = false
-) {
+class LegacyCommodore(private var exceptionHandler: ExceptionHandler? = null) {
 
     /**
      * Global dispatcher
@@ -37,15 +37,18 @@ class LegacyCommodore(
 
     /**
      * Executes a command from a string.
+     *
+     * @param rootNode Starting node for command you're trying to execute (Used for exception handling)
+     * @param
      */
-    fun execute(node: Node, arguments: String) {
+    fun execute(arguments: String, rootNode: Node? = null) {
         val parse = dispatcher.parse(arguments, null)
         try {
             dispatcher.execute(parse)
         } catch (e: CommandSyntaxException) {
-            if (exceptionHandler != null) {
-                val cause = if (rootAsCause) node else findCorrespondingNode(node, parse) ?: return
-                exceptionHandler!!.handle(cause)
+            if (exceptionHandler != null && rootNode != null) {
+                val cause = findCorrespondingNode(rootNode, parse) ?: return
+                exceptionHandler!!.handle(rootNode, cause)
             }
         }
     }
@@ -62,6 +65,6 @@ class LegacyCommodore(
      * Used to handle syntax exceptions caused from executing a command to allow for more descriptive errors.
      */
     fun interface ExceptionHandler {
-        fun handle(cause: Node)
+        fun handle(root: Node, cause: Node)
     }
 }

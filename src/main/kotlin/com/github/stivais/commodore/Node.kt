@@ -35,6 +35,8 @@ class Node(val name: String) {
 
     /**
      * Sets up the node and its children
+     *
+     * NOTE: Once you build, you are unable to make any changes.
      */
     fun build() {
         executables?.let {
@@ -86,6 +88,8 @@ class Node(val name: String) {
      *
      * It is possible to register your own parsers using [registerParser][com.github.stivais.commodore.parsers.ParserBuilder.registerParser]
      *
+     * NOTE: If you want to define that parsing has failed in legacy versions,
+     * you want to throw [CommodoreSyntaxException][com.github.stivais.commodore.utils.SyntaxException]
      */
     fun runs(block: Function<Unit>): Executable {
         if (executables == null) executables = mutableListOf()

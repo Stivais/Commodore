@@ -38,6 +38,32 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
     }
 
     /**
+     * Adds suggestions to the last parameter.
+     *
+     * @param block The suggestions to add to the parameter (as a getter)
+     */
+    infix fun suggests(block: () -> Collection<String>) {
+        val parser = parsers.last()
+        parser.suggestions = block
+    }
+
+    /**
+     * Adds suggestions to the last parameter.
+     *
+     * @param suggestions The suggestions to add to the parameter
+     */
+    infix fun suggests(suggestions: Collection<String>) = suggests { suggestions }
+
+    /**
+     * Adds suggestions for a defined parameter.
+     *
+     * @param param the parameter to add the suggestions
+     * @param block the suggestions to add to the parameter (as a getter)
+     */
+    fun suggests(param: String, block: () -> Collection<String>) = suggests(param, block())
+
+
+    /**
      * Adds suggestions for a defined parameter.
      *
      * @param param the parameter to add the suggestions
@@ -45,12 +71,7 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
      */
     fun suggests(param: String, suggestions: Collection<String>) {
         val parser = parsers.find { it.id == param } ?: throw Exception("Parameter not found.")
-        parser.builder.suggests { _, builder ->
-            for (str in suggestions) {
-                if (str.startsWith(builder.remaining)) builder.suggest(str)
-            }
-            builder.buildFuture()
-        }
+        parser.suggestions = { suggestions }
     }
 
     /**
@@ -65,14 +86,6 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
     }
 
     /**
-     * Adds suggestions for a defined parameter.
-     *
-     * @param param the parameter to add the suggestions
-     * @param block the suggestions to add to the parameter (as a getter)
-     */
-    fun suggests(param: String, block: () -> Collection<String>) = suggests(param, block())
-
-    /**
      * Gets a list of the parameters names.
      *
      * @return List of strings
@@ -80,7 +93,6 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
     fun argumentsToString(): List<String> {
         return parsers.map { it.id }
     }
-
 
     private fun getValues(ctx: CommandContext<Any?>): MutableList<Any?> {
         return MutableList(parsers.size) { index -> parsers[index].getValue(ctx) }

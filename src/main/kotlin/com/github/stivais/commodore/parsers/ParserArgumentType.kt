@@ -4,6 +4,9 @@ import com.mojang.brigadier.Command
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.suggestion.Suggestions
+import com.mojang.brigadier.suggestion.SuggestionsBuilder
+import java.util.concurrent.CompletableFuture
 
 /**
  * This class simplifies the process of obtaining an arguments value.
@@ -32,6 +35,10 @@ abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>
      */
     var previous: ParserArgumentType<*>? = null
 
+    /** A custom suggestions getter for this class */
+    var suggestions : (() -> Collection<String>)? = null
+
+
     /**
      * Gets the value from the [context][CommandContext]
      *
@@ -59,5 +66,16 @@ abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>
             return previous!!.runs(command)
         }
         return true
+    }
+
+    final override fun <S : Any?> listSuggestions(context: CommandContext<S>, builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+        suggestions?.invoke()?.let {
+            for (str in it) {
+                if (str.startsWith(builder.remaining)) {
+                    builder.suggest(str)
+                }
+            }
+        }
+        return builder.buildFuture()
     }
 }
