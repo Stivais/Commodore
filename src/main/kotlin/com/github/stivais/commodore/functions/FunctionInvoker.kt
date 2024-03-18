@@ -15,7 +15,7 @@ class FunctionInvoker(function: Function<*>) {
     /**
      * List of parameters from the function
      */
-    val parameters: List<Parameter>
+    var parameters: List<Parameter>? = null
 
     /**
      * Used for invoking the function

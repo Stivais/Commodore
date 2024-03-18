@@ -1,3 +1,5 @@
+@file:Suppress("LEAKINGTHIS")
+
 package com.github.stivais.commodore.parsers
 
 import com.mojang.brigadier.Command
@@ -9,7 +11,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import java.util.concurrent.CompletableFuture
 
 /**
- * This class simplifies the process of obtaining an arguments value.
+ * This class handles getting the value from the argument.
  *
  * @param id The id/parameter name of the Argument
  * @param clazz The type of class the parser handles
@@ -19,9 +21,9 @@ import java.util.concurrent.CompletableFuture
 abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>) : ArgumentType<T> {
 
     /**
-     * The [Argument builder][RequiredArgumentBuilder] tied to this class
+     * The [RequiredArgumentBuilder] tied to this class
      */
-    val builder: RequiredArgumentBuilder<Any, T> by lazy { RequiredArgumentBuilder.argument(id, this) }
+    val builder: RequiredArgumentBuilder<Any, T> = RequiredArgumentBuilder.argument(id, this)
 
     /**
      * Used to check whether the class is nullable, and is used to create optional arguments
@@ -35,7 +37,9 @@ abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>
      */
     var previous: ParserArgumentType<*>? = null
 
-    /** A custom suggestions getter for this class */
+    /**
+     * Suggestions for this parameter
+     */
     var suggestions : (() -> Collection<String>)? = null
 
 
@@ -44,7 +48,7 @@ abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>
      *
      * @return the value or null if it failed.
      */
-    fun getValue(ctx: CommandContext<Any?>): T? = try {
+    internal fun getValue(ctx: CommandContext<Any?>): T? = try {
         ctx.getArgument(id, clazz)
     } catch (e: IllegalArgumentException) {
         null
@@ -57,7 +61,7 @@ abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>
      *
      * @return false if [previous] is null and this class [is optional][isOptional]
      */
-    fun runs(command: Command<Any?>): Boolean {
+    internal fun runs(command: Command<Any?>): Boolean {
         builder.executes(command)
         if (isOptional) {
             if (previous == null) {

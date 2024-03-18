@@ -18,7 +18,7 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
     /**
      * Parsers tied to this [function]
      */
-    val parsers: MutableList<ParserArgumentType<*>> = mutableListOf()
+    private val parsers: MutableList<ParserArgumentType<*>> = mutableListOf()
 
     /**
      * A [brigadier command][Command], that invokes the [function].
@@ -29,12 +29,13 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
     }
 
     init {
-        for (param in function.parameters) {
+        for (param in function.parameters!!) {
             val parser = ParserBuilder.create(param.name, param.clazz)
             parser.isOptional = param.isNullable
             parsers.lastOrNull()?.let { parser.previous = it }
             parsers.add(parser)
         }
+        function.parameters = null
     }
 
     /**

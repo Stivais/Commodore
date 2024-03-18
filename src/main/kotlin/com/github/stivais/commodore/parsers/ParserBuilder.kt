@@ -14,12 +14,8 @@ abstract class ParserBuilder<T>(val clazz: Class<T>) {
      */
     abstract fun parse(reader: StringReader): T
 
-    // im not quite sure what it does in modern versions so ill keep this here just in case it has a use
-    open fun examples(): Collection<String> = Collections.emptyList()
-
-
     /**
-     * Creates the [ParserArgumentType], using the builder's [parse], [examples] functions.
+     * Creates the [ParserArgumentType], using the builder's [parse] function.
      *
      * @param id - used to identify the parser (usually being the parameter name)
      */
@@ -32,14 +28,14 @@ abstract class ParserBuilder<T>(val clazz: Class<T>) {
 
         override fun parse(reader: StringReader): T = this@ParserBuilder.parse(reader)
 
-        override fun getExamples(): Collection<String> = this@ParserBuilder.examples()
+        override fun getExamples(): Collection<String> = Collections.emptyList()
     }
 
     companion object {
         /**
          * Map of custom parsers, if you want to parse your own classes.
          */
-        private val parserMap: MutableMap<Class<*>, ParserBuilder<*>> by lazy { mutableMapOf() }
+        private var parserMap: MutableMap<Class<*>, ParserBuilder<*>>? = null
 
         /**
          * Registers a [parser builder][ParserBuilder] to the [custom parsers map][parserMap]].
@@ -48,7 +44,8 @@ abstract class ParserBuilder<T>(val clazz: Class<T>) {
          * @param builder the parser builder
          */
         fun <T> registerParser(clazz: Class<T>, builder: ParserBuilder<T>) {
-            parserMap[clazz] = builder
+            if (parserMap == null) parserMap = mutableMapOf()
+            parserMap!![clazz] = builder
         }
 
         /**
@@ -66,7 +63,7 @@ abstract class ParserBuilder<T>(val clazz: Class<T>) {
                 java.lang.Float::class.java, Float::class.java -> FloatParser
                 java.lang.Double::class.java, Double::class.java -> DoubleParser
                 java.lang.Boolean::class.java, Boolean::class.java -> BooleanParser
-                else -> parserMap[clazz] ?: throw Exception("Parser isn't found")
+                else -> parserMap?.get(clazz) ?: throw Exception("Parser isn't found")
             }
             return builder.buildParser(id)
         }
