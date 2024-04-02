@@ -15,6 +15,9 @@ import com.mojang.brigadier.context.CommandContext
  */
 class Executable(private val node: Node, private val function: FunctionInvoker) {
 
+    /** Description of this executable */
+    var description: String? = null
+
     /**
      * Parsers tied to this [function]
      */
@@ -91,7 +94,7 @@ class Executable(private val node: Node, private val function: FunctionInvoker) 
      *
      * @return List of strings
      */
-    fun argumentsToString(): List<String> {
+    fun parametersToString(): List<String> {
         return parsers.map { it.id }
     }
 

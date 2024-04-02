@@ -7,11 +7,21 @@ import com.mojang.brigadier.Command.SINGLE_SUCCESS
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 
 /**
- * This class is used to create branch-like commands.
+ * ## Command Node
  *
- * A command, starts with the root node and branches of.
+ * This class is used to create simple, branching commands, that automatically handle parsing and tab completions.
+ *
+ * You can either add more branches to the command or add an "exit-point" where a command is executed.
+ *
+ * @see runs
+ * @see literal
  */
 class Node(val name: String) {
+
+    /**
+     * Used to describe what a node does
+     */
+    var description: String? = null
 
     /**
      * Parent of this node.
@@ -65,8 +75,11 @@ class Node(val name: String) {
     }
 
     /**
-     * Lets you add a function to this node
+     * Lets you add a "function" to this node
      * with as many parameters as you want, as long as the parameter's class has a parser.
+     *
+     * Available classes that are parseable: [String], [GreedyString][com.github.stivais.commodore.utils.GreedyString],
+     * [Int], [Long], [Float], [Double], [Boolean].
      *
      * Example:
      * ```
@@ -79,17 +92,15 @@ class Node(val name: String) {
      * For example:
      * ```
      *  runs { string: String? ->
-     *      println("foo$string") // if input is empty foo will be null, and with the input of "bar" it prints "foobar"
+     *      println("hello$string") // if input is empty string will be null, and with the input of "world" it prints "helloworld"
      *  }
      * ```
      *
-     * Available classes that are parseable: [String], [GreedyString][com.github.stivais.commodore.utils.GreedyString],
-     * [Int], [Long], [Float], [Double], [Boolean].
      *
      * It is possible to register your own parsers using [registerParser][com.github.stivais.commodore.parsers.ParserBuilder.registerParser]
      *
-     * NOTE: If you want to define that parsing has failed in legacy versions,
-     * you want to throw [CommodoreSyntaxException][com.github.stivais.commodore.utils.SyntaxException]
+     * NOTE: In most cases it is recommended to throw [CommandSyntaxException][com.github.stivais.commodore.utils.SyntaxException]
+     * instead of returning, it allows for the command input
      */
     fun runs(block: Function<Unit>): Executable {
         if (executables == null) executables = mutableListOf()
@@ -97,12 +108,21 @@ class Node(val name: String) {
     }
 
     /**
-     * Creates a function with 0 parameters, used to not waste resources on an executable with 0 parameters
+     * Creates a function with 0 parameters.
+     *
+     * If you want to add parameters, use [runs]
+     *
+     * @see runs
      */
     fun runs(block: () -> Unit) {
         builder.executes {
             block()
             SINGLE_SUCCESS
         }
+    }
+
+    /** Sets the [description] of the node */
+    infix fun description(description: String) {
+        this.description = description
     }
 }
