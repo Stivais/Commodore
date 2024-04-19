@@ -61,5 +61,8 @@ internal interface INode {
      */
     fun String.runs(block: Function<Unit>): Executable = this@INode.runs(block)
 
+    /**
+     * DSL for [runs]
+     */
     fun String.runs(block: () -> Unit) = this@INode.runs(block)
 }
