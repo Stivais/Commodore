@@ -3,6 +3,7 @@
 package com.github.stivais.commodore
 
 import com.github.stivais.commodore.functions.FunctionInvoker
+import com.github.stivais.commodore.node.Node
 import com.github.stivais.commodore.parsers.ParserArgumentType
 import com.github.stivais.commodore.parsers.ParserBuilder
 import com.mojang.brigadier.Command

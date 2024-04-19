@@ -19,8 +19,8 @@ dependencies {
     mappings("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
     forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
 
-    api(kotlin("stdlib-jdk8"))
-    api(kotlin("reflect"))
+    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
     api("com.mojang:brigadier:1.0.18")
 }
 
@@ -38,15 +38,5 @@ publishing {
             version = project.findProperty("version") as String
             from(getComponents().getByName("java"))
         }
-    }
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
-}
-
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }

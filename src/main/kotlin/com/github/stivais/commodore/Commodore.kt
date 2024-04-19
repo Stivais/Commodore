@@ -3,11 +3,11 @@
 package com.github.stivais.commodore
 
 import com.github.stivais.commodore.Commodore.Companion.setup
-import com.github.stivais.commodore.functions.FunctionInvoker
+import com.github.stivais.commodore.node.INode
+import com.github.stivais.commodore.node.Node
 import com.github.stivais.commodore.utils.findCorrespondingNode
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.exceptions.CommandSyntaxException
-import net.minecraft.client.Minecraft
 import net.minecraft.command.CommandBase
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ChatComponentText
@@ -22,33 +22,10 @@ import net.minecraft.command.ICommandSender as CMDSender
  *
  * @param names Names for the command
  */
-open class Commodore(private vararg val names: String): CommandBase() {
-
-    internal val node = Node(names[0])
-
-    /**
-     * Copy of [Node.literal] for convince
-     *
-     * @see [Node.literal]
-     */
-    fun literal(name: String, block: Node.() -> Unit = {}): Node {
-        if (node.children == null) node.children = mutableListOf()
-        return Node(name).also {
-            it.block()
-            it.parent = node
-            node.children?.add(it)
-        }
-    }
-
-    /**
-     * Copy of [Node.runs] for convince
-     *
-     * @see [Node.runs]
-     */
-    fun runs(block: Function<Unit>): Executable {
-        if (node.executables == null) node.executables = mutableListOf()
-        return Executable(node, FunctionInvoker(block)).also { node.executables?.add(it) }
-    }
+open class Commodore(
+    private vararg val names: String,
+    internal val node: Node = Node(names[0])
+): CommandBase(), INode by node {
 
     final override fun getCommandName(): String = names[0]
 
@@ -68,7 +45,7 @@ open class Commodore(private vararg val names: String): CommandBase() {
                 val cause = findCorrespondingNode(node, parse) ?: return
                 exceptionHandler!!.handle(node, cause)
             } else {
-                Minecraft.getMinecraft().thePlayer.addChatMessage(ChatComponentText("§cCommand failed. ${e.rawMessage}."))
+                sender.addChatMessage(ChatComponentText("§cCommand failed. ${e.rawMessage}."))
             }
         }
     }
@@ -93,7 +70,7 @@ open class Commodore(private vararg val names: String): CommandBase() {
     companion object {
 
         /** Logger for commodore */
-        val logger: Logger by lazy { Logger.getLogger("Commodore") }
+        private val logger: Logger by lazy { Logger.getLogger("Commodore") }
 
         /**
          * Dispatcher for commodore commands.
@@ -127,4 +104,3 @@ open class Commodore(private vararg val names: String): CommandBase() {
         }
     }
 }
-

@@ -1,5 +1,7 @@
 package com.github.stivais.commodore
 
+import com.github.stivais.commodore.node.Node
+
 /**
  * Interface for handling exceptions that are caused by wrong input when a command is run.
  *

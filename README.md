@@ -5,6 +5,12 @@
 Commodore is a Command library that makes creating Command trees
 extremely simple by bringing Kotlin DSL to [Mojang's Brigadier][brigadier-github].
 
+### Legacy Implementation
+
+- Works almost identically to modern versions
+- Works the same _(internally)_ as CommandBase
+- Automatic Tab Completions
+
 ## Dependency
 
 In your repository block, add:
@@ -37,7 +43,7 @@ val `your command` = commodore("waypoint") {
     // Input required to access this would be "waypoint add"
     literal("add")
 
-    // Adds a node named "add"
+    // Adds a node named "remove"
     literal("remove")
     
     literal("hello") {
@@ -77,8 +83,3 @@ val `your command` = commodore("waypoint") {
     }
 }
 ```
-
-## Legacy Minecraft Usage
-
-To use Commodore on MC versions that don't use brigadier.
-Change the branch onto the corresponding version

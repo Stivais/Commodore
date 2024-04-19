@@ -1,12 +1,14 @@
+@file:Suppress("UNUSED")
+
 package com.github.stivais.commodore.utils
 
-import com.github.stivais.commodore.Node
+import com.github.stivais.commodore.Commodore
+import com.github.stivais.commodore.node.Node
 import com.mojang.brigadier.ParseResults
 import com.mojang.brigadier.tree.LiteralCommandNode
 
-
 /**
- * Returns the latest [Node] from a string.
+ * Gets the latest [Node] from a string.
  *
  * @return The corresponding node
  */
@@ -20,7 +22,7 @@ fun findCorrespondingNode(node: Node, name: String): Node? {
 }
 
 /**
- * Returns the latest [Node] from a [parse result][ParseResults]
+ * Gets the latest [Node] from a [parse result][ParseResults]
  *
  * @return The corresponding node
  */
@@ -30,7 +32,7 @@ fun findCorrespondingNode(node: Node, results: ParseResults<Any?>): Node? {
 }
 
 /**
- * Returns a list of strings for the arguments required to activate a node.
+ * @return a list of strings for the arguments required to activate a node.
  */
 fun getArgumentsRequired(node: Node): List<String> {
     val mutableList = mutableListOf(node.name)
@@ -43,8 +45,13 @@ fun getArgumentsRequired(node: Node): List<String> {
 }
 
 /**
- * Returns if a node is a root node
+ * @return if a node is a root node
  */
 fun Node.isRoot(): Boolean {
     return parent == null
 }
+
+/**
+ * Factory function, used for creating Commodore commands
+ */
+inline fun commodore(name: String, block: Commodore.() -> Unit) = Commodore(name).also(block)
