@@ -1,43 +1,67 @@
 package com.github.stivais.commodore.parsers
 
-import com.mojang.brigadier.Command
+import com.github.stivais.commodore.functions.Parameter
+import com.github.stivais.commodore.utils.SyntaxException
+import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
+import com.mojang.brigadier.builder.RequiredArgumentBuilder.argument
 import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.exceptions.CommandExceptionType
+import com.mojang.brigadier.exceptions.CommandSyntaxException
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import java.util.concurrent.CompletableFuture
 
 /**
- * This class simplifies the process of obtaining an arguments value.
+ * Implementation of [ArgumentType], to integrate into Brigadier.
  *
- * @param id The id/parameter name of the Argument
- * @param clazz The type of class the parser handles
- *
- * @see ParserBuilder
+ * @see CommandParser
  */
-abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>) : ArgumentType<T> {
+class ParserArgumentType<T>(
+    private val parameter: Parameter<T>,
+    parser: CommandParser<*>
+) : ArgumentType<T> {
+
+    /**
+     * Parser for this argument type.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private val parser: CommandParser<T> = parser as CommandParser<T>
 
     /**
      * The [Argument builder][RequiredArgumentBuilder] tied to this class
      */
-    val builder: RequiredArgumentBuilder<Any, T> by lazy { RequiredArgumentBuilder.argument(id, this) }
+    val builder: RequiredArgumentBuilder<Any?, T> = argument(parameter.name, this)
 
     /**
-     * Used to check whether the class is nullable, and is used to create optional arguments
+     * Callback for getting suggestions for this parameter.
      */
-    var isOptional: Boolean = false
+    var suggestionCallback : (() -> Collection<String>)? = null
 
-    /**
-     * Reference to the previous parser of the main function
-     *
-     * @see runs
-     */
-    var previous: ParserArgumentType<*>? = null
+    override fun parse(reader: StringReader): T {
+        try {
+            return parser.parse(reader)
+        } catch (e: SyntaxException) {
+            throw CommandSyntaxException(
+                // not sure what this does, but it is needed
+                object : CommandExceptionType {},
+                { e.message },
+                reader.string,
+                reader.cursor
+            )
+        }
+    }
 
-    /** A custom suggestions getter for this class */
-    var suggestions : (() -> Collection<String>)? = null
-
+    override fun <S : Any?> listSuggestions(context: CommandContext<S>, builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
+        val suggestions = suggestionCallback?.invoke() ?: parser.suggestions()
+        for (str in suggestions) {
+            if (str.startsWith(builder.remaining)) {
+                builder.suggest(str)
+            }
+        }
+        return builder.buildFuture()
+    }
 
     /**
      * Gets the value from the [context][CommandContext]
@@ -45,37 +69,19 @@ abstract class ParserArgumentType<T>(val id: String, private val clazz: Class<T>
      * @return the value or null if it failed.
      */
     fun getValue(ctx: CommandContext<Any?>): T? = try {
-        ctx.getArgument(id, clazz)
+        println("${parameter.name} ${parameter.type}")
+        ctx.getArgument(parameter.name, parameter.type)
     } catch (e: IllegalArgumentException) {
         null
     }
 
-    /**
-     * Setups up the [executes][RequiredArgumentBuilder.executes] for [builder].
-     *
-     * If this class [is optional][isOptional], it will also apply it to the previous argument builder
-     *
-     * @return false if [previous] is null and this class [is optional][isOptional]
-     */
-    fun runs(command: Command<Any?>): Boolean {
-        builder.executes(command)
-        if (isOptional) {
-            if (previous == null) {
-                return false
-            }
-            return previous!!.runs(command)
-        }
-        return true
-    }
+    fun name() = parameter.name
 
-    final override fun <S : Any?> listSuggestions(context: CommandContext<S>, builder: SuggestionsBuilder): CompletableFuture<Suggestions> {
-        suggestions?.invoke()?.let {
-            for (str in it) {
-                if (str.startsWith(builder.remaining)) {
-                    builder.suggest(str)
-                }
-            }
-        }
-        return builder.buildFuture()
-    }
+    /**
+     * Checks if this parameter is optional,
+     * meaning it isn't required for an [Executable][com.github.stivais.commodore.nodes.Executable], to run.
+     *
+     * A parameter is optional if it is nullable.
+     */
+    fun optional() = parameter.isNullable
 }

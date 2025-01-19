@@ -1,10 +1,17 @@
+import gg.essential.gradle.util.noRunConfigs
+
 plugins {
-    kotlin("jvm") version "1.9.20"
+    id("java")
+    kotlin("jvm")
+    id("gg.essential.multi-version")
+    id("gg.essential.defaults")
     `maven-publish`
 }
 
 group = "com.github.stivais"
 version = project.findProperty("version") as String
+
+val isLegacy = project.name == "legacy"
 
 repositories {
     mavenCentral()
@@ -12,18 +19,36 @@ repositories {
 }
 
 dependencies {
-    api(kotlin("stdlib-jdk8"))
-    api(kotlin("reflect"))
-    api("com.mojang:brigadier:1.0.18")
+    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
+
+    implementation("com.mojang:brigadier:1.2.9")
 }
 
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "com.github.stivais"
-            artifactId = "Commodore"
+            artifactId = if (isLegacy) "Commodore-legacy" else "Commodore"
+            groupId = project.group as String
             version = project.findProperty("version") as String
-            from(getComponents().getByName("java"))
+            artifact(tasks.jar.get().archiveFile)
         }
     }
+    repositories {
+        mavenLocal()
+    }
+}
+
+java.withSourcesJar()
+loom.noRunConfigs()
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xlambdas=class")
+    }
+}
+
+preprocess {
+    vars.put("LEGACY", if (isLegacy) 1 else 0)
+    vars.put("!LEGACY", if (isLegacy) 0 else 1)
 }

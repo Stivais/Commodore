@@ -1,8 +1,8 @@
 package com.github.stivais.commodore.functions
 
 /**
- * Represents a function parameter. It provides the name and class and whether it is nullable.
+ * Represents a parameter for a function.
  *
- * @see com.github.stivais.commodore.Executable
+ * @see com.github.stivais.commodore.functions.FunctionInvoker
  */
-data class Parameter(val name: String, val clazz: Class<*>, val isNullable: Boolean)
+data class Parameter<T>(val name: String, val type: Class<T>, val isNullable: Boolean)

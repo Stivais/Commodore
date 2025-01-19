@@ -13,7 +13,7 @@ package com.github.stivais.commodore.utils
  * ```
  *
  * NOTE: You can't use any more parameters past a greedy string as it takes all remaining strings,
- * causing the command to error because it is unable to fulfil the remaining parameters
+ * causing the command to error because it is unable to fulfill the remaining parameters
  */
 data class GreedyString(val string: String) {
     override fun toString(): String = string
