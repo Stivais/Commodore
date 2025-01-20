@@ -48,7 +48,10 @@ publishing {
     }
 }
 
-java.withSourcesJar()
+java {
+    withSourcesJar()
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
+}
 
 tasks {
     jar {
