@@ -50,8 +50,14 @@ publishing {
 
 java {
     withSourcesJar()
-    toolchain.languageVersion = JavaLanguageVersion.of(8)
 }
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xlambdas=class")
+    }
+}
+
 
 tasks {
     jar {
@@ -63,12 +69,6 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         configurations = listOf(embed)
         mergeServiceFiles()
-    }
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xlambdas=class")
     }
 }
 
