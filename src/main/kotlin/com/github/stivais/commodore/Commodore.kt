@@ -5,6 +5,7 @@ package com.github.stivais.commodore
 import com.github.stivais.commodore.nodes.LiteralNode
 import com.github.stivais.commodore.utils.findCorrespondingNode
 import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.builder.LiteralArgumentBuilder.literal
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 
 //#if LEGACY
@@ -107,6 +108,10 @@ open class Commodore(private val root: LiteralNode) {
             node.build(root)
         }
         (dispatcher as CommandDispatcher<Any?>).register(root.builder)
+        for (alias in root.aliases) {
+            val aliasBuilder = literal<Any?>(alias).redirect(root.builder.build())
+            dispatcher.register(aliasBuilder)
+        }
         //#if LEGACY
         ClientCommandHandler.instance.registerCommand(commandBase)
         this.errorCallback = errorCallback

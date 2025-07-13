@@ -54,9 +54,8 @@ open class LiteralNode(val name: String) : Node() {
         val builtNode = builder.build()
 
         for (alias in aliases) {
-            val literal = literal<Any?>(alias)
-            parent.builder.then(literal)
-            literal.redirect(builtNode)
+            val aliasBuilder = literal<Any?>(alias).redirect(builtNode)
+            parent.builder.then(aliasBuilder)
         }
     }
 
