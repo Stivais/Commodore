@@ -108,8 +108,11 @@ open class Commodore(private val root: LiteralNode) {
             node.build(root)
         }
         (dispatcher as CommandDispatcher<Any?>).register(root.builder)
+        val rootCommand = root.builder.build()
         for (alias in root.aliases) {
-            val aliasBuilder = literal<Any?>(alias).redirect(root.builder.build())
+            val aliasBuilder = literal<Any?>(alias)
+            if (rootCommand.command != null) aliasBuilder.executes(rootCommand.command)
+            aliasBuilder.redirect(rootCommand)
             dispatcher.register(aliasBuilder)
         }
         //#if LEGACY
