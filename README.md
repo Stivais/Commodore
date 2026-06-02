@@ -23,22 +23,25 @@ dependencies {
 }
 ```
 
-## Usage
+Due to how Kotlin compiles anonymous functions, you will need to add:
+```kotlin
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xlambdas=class")
+    }
+}
+```
 
-By using Kotlin DSL, you're able to create a command tree
-by essentially _visualizing_ it.
+## Usage
 
 ### Creating a command:
 Creating the nodes:
 ```kotlin
-// Example command that handles waypoints
-val `your command` = commodore("waypoint") {
-    // Adds a node named "add"
-    // Input required to access this would be "waypoint add"
-    literal("add")
-
-    // Adds a node named "add"
-    literal("remove")
+// Example command
+val `your command` = commodore("example") {
+    // Adds a node named "foo"
+    // Input required to access this would be "example foo"
+    literal("foo")
     
     literal("hello") {
         // Nodes can also be nested
@@ -48,37 +51,30 @@ val `your command` = commodore("waypoint") {
 }
 ```
 However, this command doesn't do anything.
-You will need to add functionality which is extremely easy.
+For a command to run, you will need to add an exit point, in this case a function.
 
-Using Commodore, you can add "functions" with even your own parameters
-that automatically parse, so that all you have to worry about is the type.
+Using Commodore, you can add functions with your own parameters as long they have a valid parser.
 
 Adding functionality:
 ```kotlin
 // Adding functions to the command.
-val `your command` = commodore("waypoint") {
-    // Added a function with the parameters name, x, y, z
+val `your command` = commodore("foo") {
+    // Added a function with the parameters: name, x, y, z
     // It will only run if the input matches all the nodes and parameters
-    // Input required: waypoint add 1 2.0 1223.2
-    literal("add").runs { name: String, x: Double, y: Double, z: Double ->
-        println("Adding waypoint $name at $x, $y, $z")
+    // Example input: foo abc 1 2.0 5
+    literal("foo").runs { name: String, x: Double, y: Double, z: Double ->
+        println("$name $x, $y, $z")
     }
 
-    // Added a function with an optional parameter (defined by it being nullable)
-    // Optional parameters aren't required to fulfill the input required
-    literal("remove") {
+    // Nullable types are optional, meaning input isn't required.
+    literal("bar") {
         runs { name: String? ->
             if (name == null) {
-                println("Removing last waypoint")
+                println("no input")
             } else {
-                println("Removing waypoint named $name")
+                println("input: $name")
             }
         }
     }
 }
 ```
-
-## Legacy Minecraft Usage
-
-To use Commodore on MC versions that don't use brigadier.
-Change the branch onto the corresponding version

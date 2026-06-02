@@ -47,7 +47,7 @@ class FunctionParser<T>(
                 ?: throw IllegalStateException("No parser found for parameter: ${parameter.name}(type=${parameter.type})")
             parsers.add(parser)
         }
-        require(parsers.size != 0) { "You need at least one parameter in the function for this parser." }
+        require(parsers.isNotEmpty()) { "You need at least one parameter in the function for this parser." }
     }
 
     override fun parse(reader: StringReader): T {
